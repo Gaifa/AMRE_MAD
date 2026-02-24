@@ -1,0 +1,208 @@
+================================================================================
+REPORT DIMENSIONAMENTO MOTORE VEICOLO ELETTRICO
+Data: 23/02/2026 11:21:53
+================================================================================
+
+PARAMETRI VEICOLO:
+--------------------------------------------------------------------------------
+Peso a vuoto: 3875 kg
+Peso a carico: 6250 kg
+Diametro ruota: 744 mm
+Rapporto riduzione: 18.04:1
+Coefficiente rotolamento: 0.018
+Coefficiente drag: 0.00
+Area frontale: 2.50 m²
+Numero motori: 1
+Numero ruote motrici: 2
+Rendimento meccanico: 90%
+Rendimento motore: 85%
+
+
+================================================================================
+SCENARI ANALIZZATI
+================================================================================
+
+--------------------------------------------------------------------------------
+SCENARIO: Pianura a vuoto - V.max costante
+--------------------------------------------------------------------------------
+Tipo: VELOCITA_COSTANTE
+Massa veicolo: 3875 kg
+Velocità: 50.0 km/h (13.89 m/s)
+Regime: Velocità costante (accelerazione = 0)
+
+ANALISI FORZE:
+  - Resistenza rotolamento: 684 N
+  - Resistenza aerodinamica: 0 N
+  - Forza inerzia: 0 N
+  - FORZA TOTALE: 684 N
+
+REQUISITI MOTORE (per singolo motore):
+  - Coppia: 15.7 Nm
+  - Potenza: 12.4 kW
+  - Velocità: 6433 rpm
+
+--------------------------------------------------------------------------------
+SCENARIO: Pianura a vuoto - Accelerazione
+--------------------------------------------------------------------------------
+Tipo: ACCELERAZIONE
+Massa veicolo: 3875 kg
+Velocità: 50.0 km/h (13.89 m/s)
+Tempo accelerazione: 24.0 s
+Accelerazione media: 0.58 m/s²
+
+ANALISI FORZE:
+  - Resistenza rotolamento: 684 N
+  - Resistenza aerodinamica: 0 N
+  - Forza inerzia: 2467 N
+  - FORZA TOTALE: 3151 N
+
+REQUISITI MOTORE (per singolo motore):
+  - Coppia: 72.2 Nm
+  - Potenza: 57.2 kW
+  - Velocità: 6433 rpm
+
+--------------------------------------------------------------------------------
+SCENARIO: Pianura a carico - V.max costante
+--------------------------------------------------------------------------------
+Tipo: VELOCITA_COSTANTE
+Massa veicolo: 6250 kg
+Velocità: 40.0 km/h (11.11 m/s)
+Regime: Velocità costante (accelerazione = 0)
+
+ANALISI FORZE:
+  - Resistenza rotolamento: 1104 N
+  - Resistenza aerodinamica: 0 N
+  - Forza inerzia: 0 N
+  - FORZA TOTALE: 1104 N
+
+REQUISITI MOTORE (per singolo motore):
+  - Coppia: 25.3 Nm
+  - Potenza: 16.0 kW
+  - Velocità: 5146 rpm
+
+--------------------------------------------------------------------------------
+SCENARIO: Pianura a carico - Accelerazione
+--------------------------------------------------------------------------------
+Tipo: ACCELERAZIONE
+Massa veicolo: 6250 kg
+Velocità: 40.0 km/h (11.11 m/s)
+Tempo accelerazione: 32.0 s
+Accelerazione media: 0.35 m/s²
+
+ANALISI FORZE:
+  - Resistenza rotolamento: 1104 N
+  - Resistenza aerodinamica: 0 N
+  - Forza inerzia: 2387 N
+  - FORZA TOTALE: 3491 N
+
+REQUISITI MOTORE (per singolo motore):
+  - Coppia: 80.0 Nm
+  - Potenza: 50.7 kW
+  - Velocità: 5146 rpm
+
+--------------------------------------------------------------------------------
+SCENARIO: Pendenza a vuoto - Velocità costante
+--------------------------------------------------------------------------------
+Tipo: VELOCITA_COSTANTE
+Massa veicolo: 3875 kg
+Velocità: 22.0 km/h (6.11 m/s)
+Regime: Velocità costante (accelerazione = 0)
+Pendenza: 16.0%
+
+ANALISI FORZE:
+  - Resistenza rotolamento: 684 N
+  - Resistenza aerodinamica: 0 N
+  - Forza pendenza: 6006 N
+  - Forza inerzia: 0 N
+  - FORZA TOTALE: 6690 N
+
+REQUISITI MOTORE (per singolo motore):
+  - Coppia: 153.3 Nm
+  - Potenza: 53.4 kW
+  - Velocità: 2830 rpm
+
+--------------------------------------------------------------------------------
+SCENARIO: Pendenza a vuoto - Accelerazione
+--------------------------------------------------------------------------------
+Tipo: ACCELERAZIONE
+Massa veicolo: 3875 kg
+Velocità: 22.0 km/h (6.11 m/s)
+Tempo accelerazione: 16.0 s
+Accelerazione media: 0.38 m/s²
+Pendenza: 16.0%
+
+ANALISI FORZE:
+  - Resistenza rotolamento: 684 N
+  - Resistenza aerodinamica: 0 N
+  - Forza pendenza: 6006 N
+  - Forza inerzia: 1628 N
+  - FORZA TOTALE: 8318 N
+
+REQUISITI MOTORE (per singolo motore):
+  - Coppia: 190.6 Nm
+  - Potenza: 66.4 kW
+  - Velocità: 2830 rpm
+
+--------------------------------------------------------------------------------
+SCENARIO: Pendenza a carico - Velocità costante
+--------------------------------------------------------------------------------
+Tipo: VELOCITA_COSTANTE
+Massa veicolo: 6250 kg
+Velocità: 16.0 km/h (4.44 m/s)
+Regime: Velocità costante (accelerazione = 0)
+Pendenza: 16.0%
+
+ANALISI FORZE:
+  - Resistenza rotolamento: 1104 N
+  - Resistenza aerodinamica: 0 N
+  - Forza pendenza: 9687 N
+  - Forza inerzia: 0 N
+  - FORZA TOTALE: 10790 N
+
+REQUISITI MOTORE (per singolo motore):
+  - Coppia: 247.2 Nm
+  - Potenza: 62.7 kW
+  - Velocità: 2058 rpm
+
+--------------------------------------------------------------------------------
+SCENARIO: Pendenza a carico - Accelerazione
+--------------------------------------------------------------------------------
+Tipo: ACCELERAZIONE
+Massa veicolo: 6250 kg
+Velocità: 16.0 km/h (4.44 m/s)
+Tempo accelerazione: 20.0 s
+Accelerazione media: 0.22 m/s²
+Pendenza: 16.0%
+
+ANALISI FORZE:
+  - Resistenza rotolamento: 1104 N
+  - Resistenza aerodinamica: 0 N
+  - Forza pendenza: 9687 N
+  - Forza inerzia: 1528 N
+  - FORZA TOTALE: 12318 N
+
+REQUISITI MOTORE (per singolo motore):
+  - Coppia: 282.2 Nm
+  - Potenza: 71.6 kW
+  - Velocità: 2058 rpm
+
+
+================================================================================
+REQUISITI FINALI MOTORE
+================================================================================
+Coppia nominale richiesta: 282.2 Nm
+  → Scenario critico: Pendenza a carico - Accelerazione
+
+Potenza nominale richiesta: 71.6 kW (95.9 HP)
+  → Scenario critico: Pendenza a carico - Accelerazione
+
+Velocità massima richiesta: 6433 rpm
+  → Scenario critico: Pianura a vuoto - V.max costante
+
+================================================================================
+RACCOMANDAZIONI
+================================================================================
+Scegliere un motore con:
+  - Coppia nominale: ≥ 325 Nm (margine 15%)
+  - Potenza nominale: ≥ 82.3 kW (margine 15%)
+  - Velocità massima: ≥ 7076 rpm (margine 10%)

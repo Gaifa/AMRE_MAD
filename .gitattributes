@@ -1,0 +1,28 @@
+# Set default behaviour to automatically normalize line endings
+* text=auto
+
+# Python files always use LF
+*.py text eol=lf
+*.ipynb text eol=lf
+
+# Windows batch files always use CRLF
+*.bat text eol=crlf
+
+# JSON and markdown use LF
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+# Binary files — no line-ending conversion
+*.mot binary
+*.bak binary
+*.db binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.docx binary
+*.xlsx binary
+*.bh binary

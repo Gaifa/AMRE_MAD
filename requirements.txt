@@ -1,0 +1,26 @@
+# MotorCAD Simulation Framework - Python Dependencies
+# 
+# Install with: pip install -r requirements.txt
+
+# COM automation for MotorCAD (Windows only)
+pywin32>=305
+
+# Scientific computing and data processing
+numpy>=1.21.0
+scipy>=1.7.0
+
+# Data visualization (for plotting results and PDF reports)
+matplotlib>=3.4.0
+
+# PDF generation (for performance reports)
+reportlab>=3.6.0
+
+# Web interface (optional, for web-based GUI)
+flask>=2.0.0
+
+# Database
+# SQLite is included in Python standard library
+
+# Development dependencies (optional)
+# pytest>=7.0.0  # For unit testing
+# black>=22.0.0  # For code formatting

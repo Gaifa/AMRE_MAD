@@ -1,0 +1,23 @@
+{
+    "Maximum speed": 5000,
+    "Minimum speed": 50,
+    "Maximum current density": 15,
+    "Battery voltage": [
+        24,
+        48,
+        80,
+        96,
+        120,
+        144
+    ],
+    "Current density": [
+        4,
+        4.5,
+        5,
+        5.5,
+        7,
+        7.5,
+        8,
+        13
+    ]
+}

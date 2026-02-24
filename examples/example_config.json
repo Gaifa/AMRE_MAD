@@ -1,0 +1,22 @@
+{
+  "_comment": "Example custom configuration for MotorCAD simulations",
+  "_description": "This file can be used with: python scripts/run_simulations.py --motor motor.mot --config example_config.json",
+  
+  "Maximum speed": 6000,
+  "Minimum speed": 100,
+  "Maximum current density": 20,
+  
+  "Battery voltage": [
+    24,
+    48,
+    96
+  ],
+  
+  "Current density": [
+    4,
+    6,
+    8,
+    10,
+    12
+  ]
+}

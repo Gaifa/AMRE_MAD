@@ -1,0 +1,74 @@
+{
+    "motor_types": {
+        "FL": {
+            "description": "FrameLess Motors",
+            "duties": {
+                "S1": {
+                    "current_density": 4.0,
+                    "duration_min": "continuous"
+                },
+                "S2-60min": {
+                    "current_density": 4.5,
+                    "duration_min": 60
+                },
+                "S2-20min": {
+                    "current_density": 5.0,
+                    "duration_min": 20
+                },
+                "S2-5min": {
+                    "current_density": 5.5,
+                    "duration_min": 5
+                }
+            }
+        },
+        "MC": {
+            "description": "MEC motors",
+            "duties": {
+                "S1": {
+                    "current_density": 7.0,
+                    "duration_min": "continuous"
+                },
+                "S2-60min": {
+                    "current_density": 7.5,
+                    "duration_min": 60
+                },
+                "S2-20min": {
+                    "current_density": 8.0,
+                    "duration_min": 20
+                },
+                "S2-5min": {
+                    "current_density": 13.0,
+                    "duration_min": 5
+                }
+            }
+        },
+        "MV": {
+            "description": "MEC Ventilated Motors",
+            "duties": {
+                "S1": {
+                    "current_density": 5.0,
+                    "duration_min": "continuous"
+                },
+                "S2-60min": {
+                    "current_density": 5.5,
+                    "duration_min": 60
+                },
+                "S2-20min": {
+                    "current_density": 7.0,
+                    "duration_min": 20
+                },
+                "S2-5min": {
+                    "current_density": 8.0,
+                    "duration_min": 5
+                }
+            }
+        }
+    },
+    "pdf_settings": {
+        "logo_path": "AMRE_logo.png",
+        "output_directory": "generated_pdfs",
+        "max_temperature": "80°C",
+        "ambient_temperature": "40°C",
+        "ip_class": "IP54"
+    }
+}

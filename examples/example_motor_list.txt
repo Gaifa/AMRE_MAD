@@ -1,0 +1,24 @@
+# Example Motor List File
+# 
+# This file contains paths to .mot files to be simulated.
+# Lines starting with # are comments and will be ignored.
+# One motor file path per line.
+#
+# Usage:
+#   python scripts/run_simulations.py --list example_motor_list.txt
+
+# D106 Series Motors
+Motori/D106 H65 25sp DT ( 2x0.63 + 2x0.5 ).mot
+#Motori/D106 H65 30sp DT ( 2x0.63 + 1x0.5 ).mot
+#Motori/D106 H65 40sp DT ( 1x0.9 ).mot
+
+# D135 Series Motors
+#Motori/D135 H100 12sp DT ( 2x0.9 + 2x0.8 ).mot
+#Motori/D135 H100 14sp DT ( 2x0.8 + 2x0.75 ).mot
+Motori/D135 H120 10sp DT ( 11x0.56 ).mot
+
+# D150 Series Motors
+#Motori/D150 H120 6sp DT ( 8x0.9 ).mot
+Motori/D150 H120 12sp DT ( 4x0.9 ).mot
+
+# Add more motor paths as needed...
