@@ -58,8 +58,8 @@ DEFAULT_MODEL_DICT = {
     'Maximum speed': 5000,              # Maximum rotational speed [rpm]
     'Minimum speed': 50,                # Minimum rotational speed [rpm]
     'Maximum current density': 15,      # Maximum current density [A/mm²]
-    'Battery voltage': [24],#[24, 48, 80, 96, 120, 144],  # DC bus voltages to test [V]
-    'Current density': [4, 4.5, 5, 5.5, 7, 7.5, 8, 13]  # Current densities to test [A/mm²]
+    'Battery voltage': [96],#[24, 48, 80, 96, 120, 144],  # DC bus voltages to test [V]
+    'Current density': [3.5,4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 13]  # Current densities to test [A/mm²]
 }
 
 # Speed increment for simulation sweep [rpm]

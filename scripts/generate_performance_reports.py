@@ -23,6 +23,7 @@ from src import database, config
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase.ttfonts import TTFont
@@ -36,14 +37,24 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 # Font registration (Aptos)
 APTOS_FONT_PATH = os.path.join(os.path.dirname(__file__), "Aptos-Regular.ttf")
+APTOS_BOLD_PATH = os.path.join(os.path.dirname(__file__), "Aptos-Bold.ttf")
 if os.path.exists(APTOS_FONT_PATH):
     pdfmetrics.registerFont(TTFont("Aptos", APTOS_FONT_PATH))
     FONT_NAME = "Aptos"
+    if os.path.exists(APTOS_BOLD_PATH):
+        pdfmetrics.registerFont(TTFont("Aptos-Bold", APTOS_BOLD_PATH))
+        FONT_NAME_BOLD = "Aptos-Bold"
+    else:
+        FONT_NAME_BOLD = "Aptos"   # fallback: same font
 else:
     FONT_NAME = "Helvetica"
+    FONT_NAME_BOLD = "Helvetica-Bold"
 
 # Configuration file
-CONFIG_FILE = os.path.join(os.path.dirname(__file__), "..", "motor_types_config.json")
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), "..", "config", "motor_types_config.json")
+
+# DMC inverter catalogue
+DMC_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "..", "config", "dmc_types_dictionary.json")
 
 # Color palette for plots
 COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
@@ -51,8 +62,88 @@ COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
 
 def load_motor_types_config(config_path=CONFIG_FILE):
     """Load motor types and duty cycle configuration from JSON file."""
-    with open(config_path, 'r') as f:
+    with open(config_path, 'r', encoding='utf-8') as f:
         return json.load(f)
+
+
+def load_dmc_config(dmc_path=DMC_CONFIG_FILE):
+    """Load the DMC inverter catalogue from JSON file."""
+    if not dmc_path or not os.path.exists(dmc_path):
+        return None
+    try:
+        with open(dmc_path, 'r', encoding='utf-8-sig') as f:
+            content = f.read().strip()
+            if not content:
+                return None
+            return json.loads(content)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def find_suggested_inverter(battery_voltage, current_s2_5min, current_s2_60min, dmc_config):
+    """
+    Find the smallest suitable DMC inverter for the given operating point.
+
+    Selection criteria (full match):
+      - model.maxVoltageV          >= battery_voltage
+      - size.maxCurrentArms        >= current_s2_5min   (peak / S2-5 min)
+      - size.continuousCurrentArms >= current_s2_60min  (continuous / S2-60 min)
+
+    If no size fully matches the current requirements, the function falls back to
+    size 4 at the correct voltage and reports which duties it can actually cover.
+
+    Returns:
+        (label, note)  where label is e.g. "DMC SSigma2 96V  size 2" and note is
+                       None for a full match or a coverage string for a fallback.
+        (None, None)   if no inverter at the required voltage is found at all.
+    """
+    if dmc_config is None:
+        return None, None
+
+    full_candidates  = []   # fully satisfy both current requirements
+    fallback_size4   = []   # size-4 entries at correct voltage (partial coverage)
+
+    for family in dmc_config.get('inverterFamilies', []):
+        for model in family.get('models', []):
+            if model['maxVoltageV'] < battery_voltage:
+                continue                              # voltage too low — skip entirely
+            for sz in model.get('sizes', []):
+                peak_ok = (current_s2_5min  is None) or (sz['maxCurrentArms']       >= current_s2_5min)
+                cont_ok = (current_s2_60min is None) or (sz['continuousCurrentArms'] >= current_s2_60min)
+                if peak_ok and cont_ok:
+                    full_candidates.append((
+                        model['maxVoltageV'], sz['maxCurrentArms'],
+                        model['modelName'], sz['size'],
+                    ))
+                elif sz['size'] == 4:                 # collect as fallback
+                    fallback_size4.append((
+                        model['maxVoltageV'], sz['maxCurrentArms'],
+                        model['modelName'], sz['size'],
+                        peak_ok, cont_ok,
+                    ))
+
+    # --- full match found ---
+    if full_candidates:
+        full_candidates.sort(key=lambda c: (c[0], c[1]))
+        _, _, model_name, size = full_candidates[0]
+        return f"DMC {model_name}  size {size}", None
+
+    # --- fallback: recommend size 4 with coverage note ---
+    if not fallback_size4:
+        return None, None
+
+    fallback_size4.sort(key=lambda c: (c[0], c[1]))
+    _, _, model_name, size, peak_ok, cont_ok = fallback_size4[0]
+    label = f"DMC {model_name}  size {size}"
+
+    if cont_ok and not peak_ok:
+        note = "covers up to S2-60min"
+    elif peak_ok and not cont_ok:
+        note = "covers up to S2-20min"
+    else:
+        note = "motor current exceeds inverter limits"
+
+    return label, note
 
 
 def get_motor_info_from_json(motor_json):
@@ -88,49 +179,77 @@ def generate_performance_plot(run_data_list, duty_labels, output_path):
         duty_labels: List of duty labels (e.g., ['S2-5min', 'S2-20min', 'S2-60min'])
         output_path: Path to save the plot image
     """
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
-    
+    fig, ax1 = plt.subplots(figsize=(11, 6))
+    ax2 = ax1.twinx()
+
+    legend_handles = []
+
     # Plot for each duty cycle
     for idx, (run_data, duty_label) in enumerate(zip(run_data_list, duty_labels)):
         if run_data is None:
             continue
-        
+
         color = COLORS[idx % len(COLORS)]
-        
+
         # Extract data
         speed = np.asarray(run_data.get('Speed', [])).flatten()
         torque = np.asarray(run_data.get('Shaft_Torque', [])).flatten()
-        power = np.asarray(run_data.get('Shaft_Power', [])).flatten() / 1000  # Convert to kW
-        
+        power = np.asarray(run_data.get('Shaft_Power', [])).flatten() 
+
         if len(speed) == 0:
             continue
-        
-        # Torque plot (solid line)
-        ax1.plot(speed, torque, color=color, linewidth=2, linestyle='-', 
-                label=f'{duty_label} - Torque')
-        
-        # Power plot (dashed line)
-        ax2.plot(speed, power, color=color, linewidth=2, linestyle='--', 
-                label=f'{duty_label} - Power')
-    
-    # Configure torque axis
+
+        # Torque — solid line on left axis
+        ax1.plot(speed, torque, color=color, linewidth=2, linestyle='-')
+
+        # Power — dashed line on right axis
+        ax2.plot(speed, power, color=color, linewidth=2, linestyle='--')
+
+        # One legend entry per duty (coloured patch)
+        legend_handles.append(
+            plt.Line2D([0], [0], color=color, linewidth=2, label=duty_label)
+        )
+
+    # Left axis — torque
     ax1.set_xlabel('Speed [rpm]', fontsize=12, fontweight='bold')
-    ax1.set_ylabel('Torque [Nm]', fontsize=12, fontweight='bold')
-    ax1.set_title('Torque vs Speed', fontsize=14, fontweight='bold')
+    ax1.set_ylabel('Torque [Nm]', fontsize=12, fontweight='bold', color='black')
+    ax1.tick_params(axis='y', labelcolor='black')
     ax1.grid(True, alpha=0.3, linestyle='--')
-    ax1.legend(loc='best', fontsize=10, framealpha=0.9)
-    
-    # Configure power axis
-    ax2.set_xlabel('Speed [rpm]', fontsize=12, fontweight='bold')
-    ax2.set_ylabel('Power [kW]', fontsize=12, fontweight='bold')
-    ax2.set_title('Power vs Speed', fontsize=14, fontweight='bold')
-    ax2.grid(True, alpha=0.3, linestyle='--')
-    ax2.legend(loc='best', fontsize=10, framealpha=0.9)
-    
-    plt.tight_layout()
+
+    # Right axis — power
+    ax2.set_ylabel('Power [kW]', fontsize=12, fontweight='bold', color='dimgray')
+    ax2.tick_params(axis='y', labelcolor='black')
+
+    # Style hint lines (no data, just for the legend)
+    solid_line = plt.Line2D([0], [0], color='black', linewidth=2, linestyle='-',  label='Torque [Nm]')
+    dashed_line = plt.Line2D([0], [0], color='dimgray', linewidth=2, linestyle='--', label='Power [kW]')
+
+    # Duty legend — above the axes at figure level, never overlaps curves
+    fig.legend(
+        handles=legend_handles,
+        loc='upper center',
+        bbox_to_anchor=(0.5, 1.0),
+        ncol=len(legend_handles),
+        fontsize=10,
+        framealpha=0.9,
+        title='Duty cycle',
+        title_fontsize=10,
+        borderaxespad=0.3
+    )
+
+    # Small style legend inside the axes (lower right)
+    ax1.legend(
+        handles=[solid_line, dashed_line],
+        loc='upper right',
+        fontsize=9,
+        framealpha=0.7
+    )
+
+    # Leave room at the top for the figure-level legend
+    plt.tight_layout(rect=[0, 0, 1, 0.87])
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
-    
+
     return output_path
 
 
@@ -161,7 +280,7 @@ def get_run_performance_data(con, motor_id, voltage, current_density):
     
     return {
         'torque': torque[max_power_idx] if len(torque) > max_power_idx else 0,
-        'power': power[max_power_idx] / 1000 if len(power) > max_power_idx else 0,  # kW
+        'power': power[max_power_idx] if len(power) > max_power_idx else 0,  # kW
         'speed': speed[max_power_idx] if len(speed) > max_power_idx else 0,
         'efficiency': efficiency[max_power_idx] if len(efficiency) > max_power_idx else 0,
         'current': current[max_power_idx] if len(current) > max_power_idx else 0,
@@ -186,13 +305,19 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
         output_path: Output PDF file path
         pdf_settings: PDF generation settings
     """
-    # Create document
-    doc = SimpleDocTemplate(output_path, pagesize=A4)
+    # Create document — tighter margins to fit everything on one page
+    doc = SimpleDocTemplate(
+        output_path, pagesize=A4,
+        topMargin=8*mm, bottomMargin=18*mm,
+        leftMargin=10*mm, rightMargin=10*mm
+    )
     elements = []
     styles = getSampleStyleSheet()
     
     # Custom styles
     header_box_color = colors.HexColor("#203764")
+    #cl= colors.rgb2cmyk(r=32, g=55, b=100)
+
     style_title = ParagraphStyle(name='title', parent=styles['Title'], 
                                  alignment=1, fontSize=18, spaceAfter=10, 
                                  fontName=FONT_NAME, textColor=colors.white)
@@ -202,46 +327,58 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
     style_footer = ParagraphStyle(name='footer', parent=styles['Normal'], 
                                   alignment=1, fontSize=10, textColor=colors.white, 
                                   fontName=FONT_NAME)
-    style_table_header = ParagraphStyle(name='table_header', parent=styles['Normal'], 
-                                       fontSize=12, textColor=colors.white, 
-                                       fontName=FONT_NAME)
-    style_table_cell = ParagraphStyle(name='table_cell', parent=styles['Normal'], 
-                                     fontSize=10, fontName=FONT_NAME)
+    style_table_header = ParagraphStyle(name='table_header', parent=styles['Normal'],
+                                        fontSize=11, textColor=colors.white,
+                                        fontName=FONT_NAME_BOLD, wordWrap=None,
+                                        alignment=1)
+    style_table_cell = ParagraphStyle(name='table_cell', parent=styles['Normal'],
+                                      fontSize=9, fontName=FONT_NAME)
+    style_table_cell_white = ParagraphStyle(name='table_cell_white', parent=styles['Normal'],
+                                            fontSize=9, fontName=FONT_NAME_BOLD,
+                                            textColor=colors.white, wordWrap=None,
+                                            alignment=1)
     
     # Generate model name
     model_name = f"IM-D{int(motor_info['diameter'])}-H{int(motor_info['length'])}-{int(motor_info['turns'])}T-{motor_info['connection']}"
     
     # Title
-    title = f"PERFORMANCE REPORT - {int(voltage)}Vdc - {motor_type}"
+    title = f"PERFORMANCE REPORT"
     
     # Header table
-    logo_path = os.path.join(os.path.dirname(__file__), pdf_settings.get('logo_path', 'AMRE_logo.png'))
+    # Logo: look first in vario/, then next to the script
+    _vario = os.path.join(os.path.dirname(__file__), '..', 'vario')
+    logo_filename = pdf_settings.get('logo_path', 'AMRE_Logo.png')
+    logo_path = os.path.join(_vario, logo_filename)
+    if not os.path.exists(logo_path):
+        logo_path = os.path.join(os.path.dirname(__file__), logo_filename)
     
     header_data = [[]]
     
-    # Logo (if exists)
+    # Logo (if exists) — scale proportionally to width=45mm
     if os.path.exists(logo_path):
-        header_data[0].append(Image(logo_path, width=30*mm, height=20*mm, mask='auto'))
+        _ir = ImageReader(logo_path)
+        _orig_w, _orig_h = _ir.getSize()
+        _logo_w = 45 * mm
+        _logo_h = _logo_w * _orig_h / _orig_w
+        header_data[0].append(Image(logo_path, width=_logo_w, height=_logo_h, mask='auto'))
     else:
         header_data[0].append(Paragraph("", style_table_cell))
     
     # Title
     header_data[0].append(Paragraph(f"<b>{title}</b>", style_title))
     
-    # Info box
+    # Info box — all white text, wider columns
     date_str = datetime.now().strftime("%d-%m-%Y")
     info_table = Table([
-        [Paragraph("Model", style_table_header), Paragraph(model_name, style_table_cell)],
-        [Paragraph("Type", style_table_header), Paragraph(motor_type, style_table_cell)],
-        [Paragraph("Date", style_table_header), Paragraph(date_str, style_table_cell)]
-    ], colWidths=[40, 70])
+        [Paragraph("Model", style_table_cell_white), Paragraph(model_name, style_table_cell_white)],
+        [Paragraph("Type",  style_table_cell_white), Paragraph(motor_type,  style_table_cell_white)],
+        [Paragraph("Date",  style_table_cell_white), Paragraph(date_str,     style_table_cell_white)]
+    ], colWidths=[20*mm, 48*mm])
     info_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), header_box_color),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-        ('FONTNAME', (0,0), (-1,-1), FONT_NAME),
-        ('BOX', (0,0), (-1,-1), 1, header_box_color),
-        ('INNERGRID', (0,0), (-1,-1), 0.5, header_box_color)
+        ('ALIGN',    (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, -1), FONT_NAME),
+        ('TOPPADDING',    (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
     ]))
     header_data[0].append(info_table)
     
@@ -263,15 +400,18 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
         ["Connection", motor_info['connection']],
         ["Max temperature", pdf_settings.get('max_temperature', '80°C')],
         ["Ambient temperature", pdf_settings.get('ambient_temperature', '40°C')],
-        ["IP class", pdf_settings.get('ip_class', 'IP54')]
+        ["IP class", type_config.get('ip_class', 'IP00')]
     ]
     
     gen_table_data = [[Paragraph("General Data", style_table_header), ""]]
-    gen_table_data += [[Paragraph(row[0], style_table_cell), 
-                       Paragraph(str(row[1]), style_table_cell)] for row in general_data]
+    gen_table_data += [[Paragraph(row[0], ParagraphStyle(name='label', parent=styles['Normal'],
+                                                         fontSize=9, fontName=FONT_NAME_BOLD,
+                                                         textColor=colors.HexColor("#203764"))),
+                        Paragraph(str(row[1]), style_table_cell)] for row in general_data]
     
     gen_table = Table(gen_table_data, colWidths=[60*mm, 60*mm], hAlign='CENTER')
     gen_table.setStyle(TableStyle([
+        ('SPAN',       (0,0), (-1,0)),
         ('BACKGROUND', (0,0), (-1,0), header_box_color),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
         ('FONTNAME', (0,0), (-1,-1), FONT_NAME),
@@ -279,19 +419,35 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
         ('INNERGRID', (0,0), (-1,-1), 0.5, header_box_color),
         ('BACKGROUND', (0,1), (-1,-1), colors.white),
         ('TEXTCOLOR', (0,1), (-1,-1), header_box_color),
-        ('ALIGN', (0,0), (-1,-1), 'LEFT')
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('ALIGN', (0,0), (-1,0),  'CENTER'),
     ]))
     elements.append(gen_table)
-    elements.append(Spacer(1, 12))
-    
+    elements.append(Spacer(1, 6))
+
+    # Performance plot — between General Data and Rated Performance
+    #elements.append(Paragraph("Performance Curves", style_center))
+    #elements.append(Spacer(1, 4))
+
+    if os.path.exists(plot_path):
+        plot_img = Image(plot_path, width=185*mm, height=110*mm)
+        elements.append(plot_img)
+    else:
+        elements.append(Paragraph("[Plot not available]", style_table_cell))
+
+    elements.append(Spacer(1, 6))
+
     # Rated Performance Table
-    perf_header = ["Duty", "Torque [Nm]", "Power [kW]", "Speed [rpm]", 
+    perf_header = ["Duty", "Torque [Nm]", "Power [kW]", "Speed [rpm]",
                   "Efficiency [%]", "Motor Current [Arms]", "Motor Voltage [Vrms]"]
-    
-    perf_data = [[Paragraph("Rated Performance", style_table_header)] + 
+
+    perf_data = [[Paragraph("Rated Performance", style_table_header)] +
                 ["" for _ in range(len(perf_header)-1)]]
-    perf_data.append([Paragraph(h, style_table_cell) for h in perf_header])
-    
+    perf_data.append([Paragraph(h, ParagraphStyle(name='col_header', parent=styles['Normal'],
+                                                   fontSize=8, fontName=FONT_NAME_BOLD,
+                                                   textColor=colors.HexColor("#203764"),
+                                                   alignment=1)) for h in perf_header])
+
     # Add data rows
     for duty_name, duty_info in type_config['duties'].items():
         perf = performance_data.get(duty_name)
@@ -307,11 +463,12 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
             ]
         else:
             row = [duty_name] + ["-"] * 6
-        
+
         perf_data.append([Paragraph(str(cell), style_table_cell) for cell in row])
-    
+
     perf_table = Table(perf_data, colWidths=[25*mm]*7, hAlign='CENTER')
     perf_table.setStyle(TableStyle([
+        ('SPAN',       (0,0), (-1,0)),
         ('BACKGROUND', (0,0), (-1,0), header_box_color),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
         ('FONTNAME', (0,0), (-1,-1), FONT_NAME),
@@ -319,38 +476,41 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
         ('INNERGRID', (0,0), (-1,-1), 0.5, header_box_color),
         ('BACKGROUND', (0,1), (-1,-1), colors.white),
         ('TEXTCOLOR', (0,1), (-1,-1), header_box_color),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER')
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
     ]))
     elements.append(perf_table)
-    elements.append(Spacer(1, 20))
-    
-    # Footer
-    footer_box = Table([[Paragraph(
-        "The values reported are simulated - Suggested Inverter: DMC model", 
-        style_footer)]], colWidths=[180*mm])
-    footer_box.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), header_box_color),
-        ('TEXTCOLOR', (0,0), (-1,-1), colors.white),
-        ('FONTNAME', (0,0), (-1,-1), FONT_NAME),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('BOX', (0,0), (-1,-1), 1, header_box_color)
-    ]))
-    elements.append(footer_box)
-    
-    # Page 2: Performance Plot
-    elements.append(PageBreak())
-    elements.append(Paragraph("Performance Curves", style_center))
-    elements.append(Spacer(1, 10))
-    
-    if os.path.exists(plot_path):
-        # Add plot image
-        plot_img = Image(plot_path, width=180*mm, height=180*mm)
-        elements.append(plot_img)
+
+    # Footer — drawn via canvas callback so it is always anchored to the page bottom
+    _dmc_config  = load_dmc_config()
+    _cur_s2_5    = (performance_data.get('S2-5min')  or {}).get('current')
+    _cur_s2_60   = (performance_data.get('S2-60min') or {}).get('current')
+    _inverter, _inv_note = find_suggested_inverter(voltage, _cur_s2_5, _cur_s2_60, _dmc_config)
+    if _inverter and _inv_note:
+        _footer_text = f"The values reported are simulated  |  Suggested Inverter: {_inverter}  [{_inv_note}]"
+    elif _inverter:
+        _footer_text = f"The values reported are simulated  |  Suggested Inverter: {_inverter}"
     else:
-        elements.append(Paragraph("[Plot not available]", style_table_cell))
-    
-    # Build PDF
-    doc.build(elements)
+        _footer_text = "The values reported are simulated  |  Suggested Inverter: not found in catalogue"
+    _footer_color = header_box_color
+    _footer_font  = FONT_NAME
+
+    def _draw_footer(canvas, doc):
+        from reportlab.lib.pagesizes import A4
+        _pw, _ = A4
+        _fh = 8 * mm
+        _y  = doc.bottomMargin - _fh
+        canvas.saveState()
+        canvas.setFillColor(_footer_color)
+        canvas.rect(doc.leftMargin, _y,
+                    _pw - doc.leftMargin - doc.rightMargin, _fh,
+                    fill=1, stroke=0)
+        canvas.setFillColor(colors.white)
+        canvas.setFont(_footer_font, 9)
+        canvas.drawCentredString(_pw / 2, _y + 2 * mm, _footer_text)
+        canvas.restoreState()
+
+    # Build PDF — footer injected at canvas level on every page
+    doc.build(elements, onFirstPage=_draw_footer, onLaterPages=_draw_footer)
     print(f"  PDF generated: {output_path}")
 
 
@@ -400,8 +560,11 @@ def generate_reports_for_motor(motor_id, motor_data, types_config, db_path, outp
             performance_data = {}
             run_data_list = []
             duty_labels = []
+
+            # Duties shown in the plot (fixed set, order matters)
+            PLOT_DUTIES = ['S2-5min', 'S2-20min', 'S2-60min', 'S1']
             
-            # Get duties in order: S2-5min, S2-20min, S2-60min (ascending duration)
+            # Get duties in order: ascending duration (all duties, for the table)
             duties_sorted = sorted(type_config['duties'].items(), 
                                  key=lambda x: x[1]['duration_min'] if isinstance(x[1]['duration_min'], (int, float)) else 999)
             
@@ -418,15 +581,25 @@ def generate_reports_for_motor(motor_id, motor_data, types_config, db_path, outp
                 if matching_run:
                     perf = get_run_performance_data(con, motor_id, voltage, current_density)
                     if perf:
+                        # Always add to performance_data (used by the table)
                         performance_data[duty_name] = perf
-                        run_data = database.load_run_data(con, motor_id, voltage, current_density)
-                        run_data_list.append(run_data)
-                        duty_labels.append(duty_name)
+                        # Only add to the plot if it's one of the standard plot duties
+                        if duty_name in PLOT_DUTIES:
+                            run_data = database.load_run_data(con, motor_id, voltage, current_density)
+                            run_data_list.append(run_data)
+                            duty_labels.append(duty_name)
                         print(f"    {duty_name}: J={current_density} A/mm² - Data found")
                     else:
                         print(f"    {duty_name}: J={current_density} A/mm² - No performance data")
                 else:
                     print(f"    {duty_name}: J={current_density} A/mm² - Run not found in database")
+
+            # Re-sort plot lists to match the canonical PLOT_DUTIES order
+            if run_data_list:
+                _paired = sorted(zip(duty_labels, run_data_list),
+                                 key=lambda p: PLOT_DUTIES.index(p[0]) if p[0] in PLOT_DUTIES else 99)
+                duty_labels, run_data_list = zip(*_paired)
+                duty_labels, run_data_list = list(duty_labels), list(run_data_list)
             
             # Skip if no data found
             if not performance_data:
@@ -486,7 +659,10 @@ def generate_all_reports(db_path=None, config_path=CONFIG_FILE, output_dir=None)
     """
     if db_path is None:
         db_path = config.DB_PATH
-    
+
+    if config_path is None:
+        config_path = CONFIG_FILE
+
     if output_dir is None:
         output_dir = os.path.join(os.path.dirname(__file__), "..", "generated_pdfs")
     
@@ -573,7 +749,7 @@ if __name__ == "__main__":
     else:
         # Generate reports for all motors
         generate_all_reports(
-            db_path=args.db,
-            config_path=args.config,
-            output_dir=args.output
+            db_path=args.db or None,
+            config_path=args.config or CONFIG_FILE,
+            output_dir=args.output or None
         )

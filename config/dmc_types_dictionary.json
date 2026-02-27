@@ -1,0 +1,41 @@
+{
+  "inverterFamilies": [
+    {
+      "familyName": "SSigma2",
+      "models": [
+        {
+          "modelName": "SSigma2 48V",
+          "maxVoltageV": 48,
+          "sizes": [
+            { "size": 1, "maxCurrentArms": 250, "continuousCurrentArms": 130 },
+            { "size": 2, "maxCurrentArms": 450, "continuousCurrentArms": 250 },
+            { "size": 3, "maxCurrentArms": 600, "continuousCurrentArms": 330 },
+            { "size": 4, "maxCurrentArms": 800, "continuousCurrentArms": 400 }
+          ]
+        },
+        {
+          "modelName": "SSigma2 96V",
+          "maxVoltageV": 96,
+          "sizes": [
+            { "size": 1, "maxCurrentArms": 140, "continuousCurrentArms": 75 },
+            { "size": 2, "maxCurrentArms": 270, "continuousCurrentArms": 140 },
+            { "size": 3, "maxCurrentArms": 450, "continuousCurrentArms": 230 },
+            { "size": 4, "maxCurrentArms": 600, "continuousCurrentArms": 300 }
+          ]
+        }
+      ]
+    },
+    {
+      "familyName": "SigmaLite",
+      "models": [
+        {
+          "modelName": "SigmaLite 48V",
+          "maxVoltageV": 48,
+          "sizes": [
+            { "size": 1, "maxCurrentArms": 250, "continuousCurrentArms": 120 }
+          ]
+        }
+      ]
+    }
+  ]
+}

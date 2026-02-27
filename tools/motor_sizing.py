@@ -643,7 +643,7 @@ def main():
         peso_vuoto=3875,  # kg
         peso_carico=6250,  # kg
         diametro_ruota=0.7439,  # m (743.9mm)
-        rapporto_riduzione=18.04,  # giri_motore/giri_ruota
+        rapporto_riduzione=12.578,  # giri_motore/giri_ruota
         coeff_rotolamento=0.018,  # tipico per pneumatici su asfalto
         densita_aria=1.225,  # kg/m³
         coeff_drag=0,  # Cd
