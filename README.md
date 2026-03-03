@@ -254,7 +254,17 @@ results = mcad_interface.run_and_load_with_quality_check(
 **Command Line:**
 ```bash
 # Run simulations with quality checking enabled
-python scripts/run_simulations.py --motor "motor.mot" --quality-check
+python scripts/run_simulations_quality_check.py --motor "motor.mot"
+
+# Directory with recursive search
+python scripts/run_simulations_quality_check.py --directory "Motori" --recursive
+
+# From motor list file
+python scripts/run_simulations_quality_check.py --list "motors_list.txt"
+
+# With custom quality parameters
+python scripts/run_simulations_quality_check.py --motor "motor.mot" \
+    --max-iterations 10 --initial-slip 0.02 --slip-increment 0.03
 ```
 
 **Batch Script:**
@@ -301,6 +311,70 @@ Trying IM_InitialSlip_MotorLAB = 0.0300
 - Re-running previously validated motors
 - Quick parameter sweeps where exact smoothness isn't critical
 - Batch processing large numbers of motors (quality check adds ~2-5x time)
+
+### Transactional Behavior and Failure Logging
+
+The quality check system implements **transactional behavior** for database operations:
+
+- **All-or-Nothing Policy**: If ANY run fails quality check for a motor, NO runs are saved to the database for that motor
+- **Automatic Failure Logging**: All failures are logged to a timestamped log file
+- **Detailed Tracking**: Log includes motor paths, failed runs, initial/final slip values, and failure reasons
+
+**Log File Format:**
+```
+quality_check_log_YYYYMMDD_HHMMSS.txt
+```
+
+**Log Contents:**
+```
+================================================================================
+MOTORCAD QUALITY CHECK SIMULATION LOG - FAILURES DETECTED
+================================================================================
+Date: 2026-02-27 14:30:45
+Total motors with failures: 2
+================================================================================
+
+################################################################################
+FAILED MOTOR #1
+################################################################################
+
+Motor Path: C:\Users\...\D106 H65 40sp DT ( 1x0.9 ).mot
+Number of failed runs: 2
+
+--------------------------------------------------------------------------------
+FAILED RUNS DETAILS:
+--------------------------------------------------------------------------------
+
+  Run #1:
+    Voltage: 48 V
+    Current Density: 13.0 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.0900
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.2156
+    Final Power CV: 0.1923
+
+  Run #2:
+    Voltage: 96 V
+    Current Density: 8.0 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.0700
+    Iterations attempted: 4
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.1842
+    Final Power CV: 0.1678
+
+================================================================================
+END OF LOG
+================================================================================
+```
+
+**Benefits:**
+- **Data Integrity**: Prevents partial/inconsistent data in database
+- **Traceability**: Complete audit trail of failures
+- **Debugging**: Detailed information for troubleshooting problematic motors
+- **Efficiency**: Easy identification of motors requiring parameter adjustment
 
 ## 🗄️ Database Schema
 

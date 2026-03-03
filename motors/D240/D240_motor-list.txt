@@ -1,0 +1,22 @@
+# H100
+motors\D240\D240 H100 4sp DT ( 19x1 ).mot
+motors\D240\D240 H100 8sp DT (13x0.9).mot
+#H120
+motors\D240\D240 H120 4sp DT ( 19x1 ).mot
+motors\D240\D240 H120 6sp DT ( 2x1+10x1.06+1x1.18 ).mot
+motors\D240\D240 H120 7sp DT ( 6x1.18+2x1.06+2x1 ).mot
+# H160
+motors\D240\D240 H160 3sp DT ( 20x1+7x1.06 ).mot
+motors\D240\D240 H160 4sp DT ( 19x1 ).mot
+motors\D240\D240 H160 5sp DT ( 14x1 + 3x0.85 ).mot
+motors\D240\D240 H160 6sp DT ( 5x1.18+6x1.06+1x1 ).mot
+motors\D240\D240 H160 7sp DT ( 6x1.18+2x1.06+2x1 ).mot
+motors\D240\D240 H160 8sp DT ( ).mot
+motors\D240\D240 H160 9sp DT ( 10x1 ).mot
+# H200
+motors\D240\D240 H200 3sp DT ( 20x1+7x1.06 ).mot
+motors\D240\D240 H200 4sp DT ( 19x1 ).mot
+motors\D240\D240 H200 5sp DT ( 6x1.18 + 7x1.06).mot
+motors\D240\D240 H200 5sp DT ( 14x1 + 3x0.85 ).mot
+motors\D240\D240 H200 6sp DT ( 5x1.18+6x1.06+1x1).mot
+motors\D240\D240 H200 7sp DT ( 6x1.18+2x1.06+2x1 ).mot

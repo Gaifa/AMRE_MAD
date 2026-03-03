@@ -847,6 +847,59 @@ Running MotorCAD simulation...
 - **Standard Mode**: Batch rapidi, motori validati, sweep parametrici veloci
 - **Trade-off**: +qualità vs ~2-5x tempo
 
+**Comportamento Transazionale e Logging (NEW!)**:
+
+Il sistema di quality check implementa un **comportamento transazionale**:
+
+```python
+# Policy "All-or-Nothing"
+Se QUALSIASI run fallisce per un motore:
+    → NESSUNA run viene salvata nel database per quel motore
+    → Tutte le run fallite vengono registrate nel log file
+    
+# File di log automatico
+quality_check_log_YYYYMMDD_HHMMSS.txt
+```
+
+**Informazioni Tracciare nel Log**:
+- Path completo del motore fallito
+- Dettagli di ogni run fallita:
+  - Voltage e Current Density
+  - Initial Slip (start) e Initial Slip (final)
+  - Numero iterazioni tentate
+  - Motivo del fallimento
+  - Valori CV finali (torque e power)
+
+**Vantaggi**:
+- **Integrità Dati**: Previene dati parziali/inconsistenti nel database
+- **Tracciabilità**: Audit trail completo dei fallimenti
+- **Debug**: Informazioni dettagliate per troubleshooting
+- **Efficienza**: Identificazione rapida di motori problematici
+
+**Esempio Output Log**:
+```
+################################################################################
+FAILED MOTOR #1
+################################################################################
+
+Motor Path: C:\...\D106 H65 40sp DT ( 1x0.9 ).mot
+Number of failed runs: 2
+
+--------------------------------------------------------------------------------
+FAILED RUNS DETAILS:
+--------------------------------------------------------------------------------
+
+  Run #1:
+    Voltage: 48 V
+    Current Density: 13.0 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.0900
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.2156
+    Final Power CV: 0.1923
+```
+
 ---
 
 ### 2. `scripts/view_results.py` - Viewer Risultati CLI

@@ -12,13 +12,25 @@
                     "current_density": 4.0,
                     "duration_min": 60
                 },
+                "S2-45min": {
+                    "current_density": 5,
+                    "duration_min": 45
+                },
                 "S2-30min": {
-                    "current_density": 4.5,
+                    "current_density": 6,
                     "duration_min": 30
                 },
                 "S2-20min": {
                     "current_density": 7.0,
                     "duration_min": 20
+                },
+                "S2-15min": {
+                    "current_density": 7.5,
+                    "duration_min": 15
+                },
+                "S2-10min": {
+                    "current_density": 8,
+                    "duration_min": 10
                 },
                 "S2-5min": {
                     "current_density": 13.0,
@@ -38,9 +50,25 @@
                     "current_density": 4.5,
                     "duration_min": 60
                 },
+                "S2-45min": {
+                    "current_density": 5.5,
+                    "duration_min": 45
+                },
+                "S2-30min": {
+                    "current_density": 6.5,
+                    "duration_min": 30
+                },
                 "S2-20min": {
                     "current_density": 7.5,
                     "duration_min": 20
+                },
+                "S2-15min": {
+                    "current_density": 8.0,
+                    "duration_min": 15
+                },
+                "S2-10min": {
+                    "current_density": 8.5,
+                    "duration_min": 10
                 },
                 "S2-5min": {
                     "current_density": 13.0,
@@ -60,9 +88,25 @@
                     "current_density": 5.5,
                     "duration_min": 60
                 },
+                "S2-45min": {
+                    "current_density": 6.5,
+                    "duration_min": 45
+                },
+                "S2-30min": {
+                    "current_density": 7,
+                    "duration_min": 30
+                },
                 "S2-20min": {
                     "current_density": 8.0,
                     "duration_min": 20
+                },
+                "S2-15min": {
+                    "current_density": 8.5,
+                    "duration_min": 15
+                },
+                "S2-10min": {
+                    "current_density": 9,
+                    "duration_min": 10
                 },
                 "S2-5min": {
                     "current_density": 13.0,

@@ -250,9 +250,7 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
     # Footer — anchored to page bottom via canvas callback
     # -----------------------------------------------------------------------
     _dmc_config  = _base.load_dmc_config()
-    _cur_s2_5    = (performance_data.get('S2-5min')  or {}).get('current')
-    _cur_s2_60   = (performance_data.get('S2-60min') or {}).get('current')
-    _inverter, _inv_note = _base.find_suggested_inverter(voltage, _cur_s2_5, _cur_s2_60, _dmc_config)
+    _inverter, _inv_note = _base.find_suggested_inverter(voltage, performance_data, _dmc_config)
     if _inverter and _inv_note:
         _footer_text = f"The values reported are simulated  |  Suggested Inverter: {_inverter}  [{_inv_note}]"
     elif _inverter:

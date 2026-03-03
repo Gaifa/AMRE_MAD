@@ -31,7 +31,8 @@ SAVE_KEYS = [
     "Power_Factor_From_Power_Balance",        # Power factor [-]
     "Efficiency",                             # Motor efficiency [%]
     "Frequency",                              # Electrical frequency [Hz]
-    "DC_Bus_Voltage"                          # DC bus voltage [V]
+    "DC_Bus_Voltage",                         # DC bus voltage [V]
+    "Slip",                                   # Rotor slip [-] (IM only)
 ]
 
 # Canonical key names (lowercase with underscores) for data normalization
@@ -45,7 +46,8 @@ CANON_KEYS = [
     "power_factor_from_power_balance",
     "efficiency",
     "frequency",
-    "dc_bus_voltage"
+    "dc_bus_voltage",
+    "slip",
 ]
 
 # =============================================================================
@@ -58,7 +60,7 @@ DEFAULT_MODEL_DICT = {
     'Maximum speed': 5000,              # Maximum rotational speed [rpm]
     'Minimum speed': 50,                # Minimum rotational speed [rpm]
     'Maximum current density': 15,      # Maximum current density [A/mm²]
-    'Battery voltage': [96],#[24, 48, 80, 96, 120, 144],  # DC bus voltages to test [V]
+    'Battery voltage': [24,48,80,96],#[24, 48, 80, 96, 120, 144],  # DC bus voltages to test [V]
     'Current density': [3.5,4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 13]  # Current densities to test [A/mm²]
 }
 
@@ -84,6 +86,12 @@ QUALITY_CHECK_SLIP_INCREMENT = 0.02
 # Maximum value for initial slip (safety limit)
 QUALITY_CHECK_MAX_SLIP = 0.20
 
+# Percentile threshold used to identify "high torque & high speed" operating
+# points when extracting the slip-based seed for the second iteration.
+# Points with Shaft_Torque AND Speed above this percentile are selected;
+# the median slip over those points is used as the next initial slip.
+QUALITY_CHECK_SLIP_PERCENTILE = 70
+
 # Smoothness threshold: maximum acceptable coefficient of variation (CV)
 # CV = std(differences) / mean(absolute values)
 # Lower values = stricter smoothness requirement
@@ -96,6 +104,25 @@ QUALITY_CHECK_SMOOTHNESS_THRESHOLD = 0.15
 
 # MotorCAD message display state (2 = suppress messages)
 MESSAGE_DISPLAY_STATE = 2
+
+# =============================================================================
+# MATERIAL SETTINGS
+# =============================================================================
+
+# Lamination material grade applied to all lamination regions
+LAMINATION_MATERIAL = 'M53-50A-VMF'
+
+# MotorCAD variable names for material assignment
+# Each variable is set to LAMINATION_MATERIAL via mcad.SetVariable()
+MATERIAL_VARIABLES = [
+    'Material_Embedded_Magnet_Pole',
+    'Material_Inter_Magnet_Gap',
+    'Material_Rotor_Lam_Back_Iron',
+    'Material_Rotor_Lam_Tooth',
+    'Material_Stator_Lam_Back_Iron',
+    'Material_Stator_Lam_Tooth',
+    'Material_Stator_Lam_Tooth_Tip',
+]
 
 # Motor parameter names mapping
 # Maps internal variable names to MotorCAD API variable names

@@ -80,68 +80,97 @@ def load_dmc_config(dmc_path=DMC_CONFIG_FILE):
         return None
 
 
-def find_suggested_inverter(battery_voltage, current_s2_5min, current_s2_60min, dmc_config):
+def find_suggested_inverter(battery_voltage, performance_data, dmc_config):
     """
     Find the smallest suitable DMC inverter for the given operating point.
 
-    Selection criteria (full match):
-      - model.maxVoltageV          >= battery_voltage
-      - size.maxCurrentArms        >= current_s2_5min   (peak / S2-5 min)
-      - size.continuousCurrentArms >= current_s2_60min  (continuous / S2-60 min)
+    Accepts the full performance_data dict (duty_name -> perf metrics) so it can
+    reason over every available duty, not just S2-5min and S2-60min.
 
-    If no size fully matches the current requirements, the function falls back to
-    size 4 at the correct voltage and reports which duties it can actually cover.
+    Selection criteria for a FULL match:
+      - model.maxVoltageV          >= battery_voltage
+      - size.maxCurrentArms        >= peak current  (highest current across all duties)
+      - size.continuousCurrentArms >= continuous current  (S1 > S2-60min > lowest duty)
+
+    If no size fully matches, falls back to the largest size (size 4) at the
+    correct voltage and builds a precise coverage note listing exactly which
+    duties are and are not covered.
 
     Returns:
-        (label, note)  where label is e.g. "DMC SSigma2 96V  size 2" and note is
-                       None for a full match or a coverage string for a fallback.
-        (None, None)   if no inverter at the required voltage is found at all.
+        (label, note)  label e.g. "DMC SSigma2 96V  size 2",
+                       note is None for a full match or a descriptive string.
+        (None, None)   if no model at the required voltage exists.
     """
-    if dmc_config is None:
+    if dmc_config is None or not performance_data:
         return None, None
 
-    full_candidates  = []   # fully satisfy both current requirements
-    fallback_size4   = []   # size-4 entries at correct voltage (partial coverage)
+    # Build {duty_name: current} for every duty that has data
+    _DUTY_ORDER = ['S2-5min', 'S2-20min', 'S2-60min', 'S1']
+    duty_currents = {
+        name: perf['current']
+        for name, perf in performance_data.items()
+        if perf and perf.get('current') is not None
+    }
+    if not duty_currents:
+        return None, None
+
+    # Peak = max current (shortest / most demanding duty)
+    peak_current = max(duty_currents.values())
+
+    # Continuous = current of the longest duty: prefer S1, then S2-60min, then minimum
+    if 'S1' in duty_currents:
+        cont_current = duty_currents['S1']
+    elif 'S2-60min' in duty_currents:
+        cont_current = duty_currents['S2-60min']
+    else:
+        cont_current = min(duty_currents.values())
+
+    full_candidates = []
+    fallback_size4  = []
 
     for family in dmc_config.get('inverterFamilies', []):
         for model in family.get('models', []):
             if model['maxVoltageV'] < battery_voltage:
                 continue                              # voltage too low — skip entirely
             for sz in model.get('sizes', []):
-                peak_ok = (current_s2_5min  is None) or (sz['maxCurrentArms']       >= current_s2_5min)
-                cont_ok = (current_s2_60min is None) or (sz['continuousCurrentArms'] >= current_s2_60min)
+                peak_ok = sz['maxCurrentArms']        >= peak_current
+                cont_ok = sz['continuousCurrentArms'] >= cont_current
                 if peak_ok and cont_ok:
                     full_candidates.append((
                         model['maxVoltageV'], sz['maxCurrentArms'],
                         model['modelName'], sz['size'],
                     ))
-                elif sz['size'] == 4:                 # collect as fallback
+                elif sz['size'] == 4:
                     fallback_size4.append((
-                        model['maxVoltageV'], sz['maxCurrentArms'],
+                        model['maxVoltageV'],
+                        sz['maxCurrentArms'],
+                        sz['continuousCurrentArms'],
                         model['modelName'], sz['size'],
-                        peak_ok, cont_ok,
                     ))
 
-    # --- full match found ---
+    # --- full match ---
     if full_candidates:
         full_candidates.sort(key=lambda c: (c[0], c[1]))
         _, _, model_name, size = full_candidates[0]
         return f"DMC {model_name}  size {size}", None
 
-    # --- fallback: recommend size 4 with coverage note ---
+    # --- fallback: size 4 with per-duty coverage note ---
     if not fallback_size4:
         return None, None
 
     fallback_size4.sort(key=lambda c: (c[0], c[1]))
-    _, _, model_name, size, peak_ok, cont_ok = fallback_size4[0]
+    _, max_curr, cont_curr, model_name, size = fallback_size4[0]
     label = f"DMC {model_name}  size {size}"
 
-    if cont_ok and not peak_ok:
-        note = "covers up to S2-60min"
-    elif peak_ok and not cont_ok:
-        note = "covers up to S2-20min"
+    # Find the duty with the highest current still within the inverter's peak limit
+    covered = {n: c for n, c in duty_currents.items() if max_curr >= c}
+
+    if not covered:
+        note = "motor current exceeds inverter limits for all duties"
     else:
-        note = "motor current exceeds inverter limits"
+        # Duty with the highest current value that the inverter can still handle
+        max_duty_covered = max(covered, key=lambda d: covered[d])
+        note = f"covers up to {max_duty_covered}"
 
     return label, note
 
@@ -155,6 +184,7 @@ def get_motor_info_from_json(motor_json):
         'connection_value': motor_json.get('winding_connection', {}).get('value', None),
         'poles': motor_json.get('Pole_number', {}).get('value', 0),
         'slots': motor_json.get('Slot_number', {}).get('value', 0),
+        'phases': motor_json.get('MagPhases', {}).get('value', None),
     }
     
     # Format connection type
@@ -166,6 +196,12 @@ def get_motor_info_from_json(motor_json):
             info['connection'] = "Unknown"
     else:
         info['connection'] = "Unknown"
+
+    # Format phases
+    try:
+        info['phases'] = int(float(info['phases'])) if info['phases'] is not None else None
+    except (TypeError, ValueError):
+        info['phases'] = None
     
     return info
 
@@ -397,7 +433,8 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
     general_data = [
         ["Battery voltage", f"{voltage} V"],
         ["Poles", f"{int(motor_info['poles'])}"],
-        ["Connection", motor_info['connection']],
+        ["No. of phases - Connection", 
+         f"{motor_info['phases']}ph  {motor_info['connection']}" if motor_info['phases'] else motor_info['connection']],
         ["Max temperature", pdf_settings.get('max_temperature', '80°C')],
         ["Ambient temperature", pdf_settings.get('ambient_temperature', '40°C')],
         ["IP class", type_config.get('ip_class', 'IP00')]
@@ -482,9 +519,7 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
 
     # Footer — drawn via canvas callback so it is always anchored to the page bottom
     _dmc_config  = load_dmc_config()
-    _cur_s2_5    = (performance_data.get('S2-5min')  or {}).get('current')
-    _cur_s2_60   = (performance_data.get('S2-60min') or {}).get('current')
-    _inverter, _inv_note = find_suggested_inverter(voltage, _cur_s2_5, _cur_s2_60, _dmc_config)
+    _inverter, _inv_note = find_suggested_inverter(voltage, performance_data, _dmc_config)
     if _inverter and _inv_note:
         _footer_text = f"The values reported are simulated  |  Suggested Inverter: {_inverter}  [{_inv_note}]"
     elif _inverter:

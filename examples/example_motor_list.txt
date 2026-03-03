@@ -22,5 +22,5 @@ motors/D106 H65 25sp DT ( 2x0.63 + 2x0.5 ).mot
 #motors/D150 H120 12sp DT ( 4x0.9 ).mot
 
 # D300 series motors
-motors/D300 H205 5sp QT ( 9x1.4 ).mot
+motors/D300 H205 5sp QT ( 9x1.4).mot
 # Add more motor paths as needed...

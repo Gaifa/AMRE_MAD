@@ -1,0 +1,9 @@
+motors\D106\D106 H65 25sp DT ( 2x0.63 + 2x0.5 ).mot
+motors\D106\D106 H65 30sp DT ( 2x0.63 + 1x0.5 ).mot
+motors\D106\D106 H65 40sp DT ( 1x0.9 ).mot
+motors\D106\D106 H65 45sp DS ( 1x0.71 + 1x0.5 ).mot
+motors\D106\D106 H65 45sp DT ( 1x0.71 + 1x0.5 ).mot
+# H110
+motors\D106\D106 H110 15sp DT ( 3x0.65 + 2x0.63 ).mot
+motors\D106\D106 H110 25sp DT ( 2x0.5+2x0.63 ).mot
+motors\D106\D106 H110 45sp DT ( 1x0.6+1x0.63 ).mot

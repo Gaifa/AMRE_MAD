@@ -79,6 +79,43 @@ def load_motor_file(mcad: Any, mot_file_path: str) -> bool:
         return False
 
 
+def set_materials(mcad: Any, material: Optional[str] = None) -> bool:
+    """
+    Set lamination materials in MotorCAD via SetVariable.
+
+    Applies the specified material (default: ``config.LAMINATION_MATERIAL``) to
+    all variable names listed in ``config.MATERIAL_VARIABLES``.
+
+    Args:
+        mcad:     MotorCAD application object.
+        material: Material name string.  When *None* the value from
+                  ``config.LAMINATION_MATERIAL`` is used.
+
+    Returns:
+        True if all variables were set successfully, False if any failed.
+    """
+    if material is None:
+        material = config.LAMINATION_MATERIAL
+
+    print(f'Setting lamination material to "{material}"...')
+    success = True
+
+    for var_name in config.MATERIAL_VARIABLES:
+        try:
+            mcad.SetVariable(var_name, material)
+            print(f'  {var_name} = {material}')
+        except Exception as e:
+            print(f'  WARNING: Failed to set {var_name}: {e}')
+            success = False
+
+    if success:
+        print('All material variables set successfully.')
+    else:
+        print('WARNING: One or more material variables could not be set.')
+
+    return success
+
+
 # =============================================================================
 # MOTOR PARAMETER EXTRACTION
 # =============================================================================
@@ -488,6 +525,83 @@ def run_and_load(mcad: Any, voltage: float, current_density: float,
     return load_simulation_results(mot_file_path)
 
 
+def extract_slip_from_results(
+        results: Dict[str, Any],
+        percentile: Optional[float] = None) -> Optional[float]:
+    """
+    Extract a representative slip value from simulation results.
+
+    Selects operating points where both ``Shaft_Torque`` and ``Speed`` are
+    above *percentile* (default: ``config.QUALITY_CHECK_SLIP_PERCENTILE``) and
+    returns the **median** slip at those points.  The median is robust to the
+    occasional outlier that caused the smoothness check to fail.
+
+    Args:
+        results:    Dictionary returned by ``load_simulation_results``, which
+                    must contain ``Slip``, ``Shaft_Torque``, and ``Speed`` arrays.
+        percentile: Percentile threshold for "high torque & high speed" selection.
+                    Defaults to ``config.QUALITY_CHECK_SLIP_PERCENTILE``.
+
+    Returns:
+        Median slip value (float) at the selected operating points, or *None*
+        if the data are unavailable / insufficient.
+    """
+    if percentile is None:
+        percentile = config.QUALITY_CHECK_SLIP_PERCENTILE
+
+    try:
+        slip_raw   = results.get('Slip')
+        torque_raw = results.get('Shaft_Torque')
+        speed_raw  = results.get('Speed')
+
+        if slip_raw is None or torque_raw is None or speed_raw is None:
+            print('  [slip extract] Slip, Shaft_Torque or Speed missing from results.')
+            return None
+
+        slip   = np.asarray(slip_raw,   dtype=float).ravel()
+        torque = np.asarray(torque_raw, dtype=float).ravel()
+        speed  = np.asarray(speed_raw,  dtype=float).ravel()
+
+        # Align lengths
+        n = min(len(slip), len(torque), len(speed))
+        if n < 3:
+            print('  [slip extract] Too few data points.')
+            return None
+
+        slip, torque, speed = slip[:n], torque[:n], speed[:n]
+
+        # Filter to points above the percentile in both dimensions
+        torque_thresh = np.percentile(np.abs(torque), percentile)
+        speed_thresh  = np.percentile(np.abs(speed),  percentile)
+
+        mask = (np.abs(torque) >= torque_thresh) & (np.abs(speed) >= speed_thresh)
+
+        if not np.any(mask):
+            # Fallback: use all points above speed percentile only
+            mask = np.abs(speed) >= speed_thresh
+
+        if not np.any(mask):
+            print('  [slip extract] No valid high-load points found.')
+            return None
+
+        selected_slip = slip[mask]
+        # Remove zero or negative slip values (physically meaningless seed)
+        selected_slip = selected_slip[selected_slip > 0]
+
+        if len(selected_slip) == 0:
+            print('  [slip extract] All selected slip values are <= 0.')
+            return None
+
+        median_slip = float(np.median(selected_slip))
+        print(f'  [slip extract] {np.sum(mask)} points above {percentile:.0f}th percentile '
+              f'→ median slip = {median_slip:.5f}')
+        return median_slip
+
+    except Exception as e:
+        print(f'  [slip extract] Error extracting slip: {e}')
+        return None
+
+
 def run_and_load_with_quality_check(mcad: Any, voltage: float, current_density: float,
                                    motor_dict: Dict[str, Any], model_dict: Dict[str, Any],
                                    mot_file_path: str,
@@ -542,7 +656,8 @@ def run_and_load_with_quality_check(mcad: Any, voltage: float, current_density: 
     print(f"{'='*70}\n")
     
     current_slip = initial_slip_start
-    
+    last_results = None   # keeps the most-recent temp results for slip extraction
+
     for iteration in range(1, max_iterations + 1):
         print(f"\n--- Iteration {iteration}/{max_iterations} ---")
         print(f"Trying IM_InitialSlip_MotorLAB = {current_slip:.4f}")
@@ -554,7 +669,9 @@ def run_and_load_with_quality_check(mcad: Any, voltage: float, current_density: 
         if results is None:
             print(f"ERROR: Simulation failed at iteration {iteration}")
             return None
-        
+
+        last_results = results
+
         # Check smoothness of results
         is_smooth, metrics = check_results_smoothness(results, smoothness_threshold)
         
@@ -567,17 +684,27 @@ def run_and_load_with_quality_check(mcad: Any, voltage: float, current_density: 
             print(f"{'='*70}\n")
             return results
         
-        # Results not smooth, increase slip for next iteration
+        # Results not smooth – choose next slip value
         if iteration < max_iterations:
-            current_slip += slip_increment
-            
-            # Check if we've exceeded maximum slip
+            if iteration == 1:
+                # After the very first failure, seed next slip from the
+                # median slip observed at high-torque / high-speed points.
+                extracted = extract_slip_from_results(last_results)
+                if extracted is not None and extracted > current_slip:
+                    print(f"  → Using slip extracted from results: {extracted:.5f}")
+                    current_slip = extracted
+                else:
+                    print(f"  → Extracted slip ({extracted}) not usable; "
+                          f"falling back to increment (+{slip_increment})")
+                    current_slip += slip_increment
+            else:
+                # Subsequent failures: plain increment
+                current_slip += slip_increment
+
+            # Clamp to maximum allowed slip
             if current_slip > max_slip:
                 print(f"\nWarning: Reached maximum slip value ({max_slip})")
                 current_slip = max_slip
-                # Continue with max slip value - this is the last attempt
-                if iteration == max_iterations - 1:
-                    print("This is the final iteration with maximum slip value.")
         else:
             print(f"\n{'='*70}")
             print(f"⚠ WARNING: Maximum iterations reached without smooth results")

@@ -1,0 +1,75 @@
+================================================================================
+MOTORCAD QUALITY CHECK SIMULATION LOG - EXAMPLE
+================================================================================
+Date: 2026-02-27 10:15:32
+Total motors with failures: 1
+================================================================================
+
+################################################################################
+FAILED MOTOR #1
+################################################################################
+
+Motor Path: C:\Users\grell\Desktop\MCAD_jack\Motori\D106 H65 40sp DT ( 1x0.9 ).mot
+Number of failed runs: 2
+
+--------------------------------------------------------------------------------
+FAILED RUNS DETAILS:
+--------------------------------------------------------------------------------
+
+  Run #1:
+    Voltage: 48 V
+    Current Density: 13.0 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.0900
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.2156
+    Final Power CV: 0.1923
+
+  Run #2:
+    Voltage: 96 V
+    Current Density: 8.0 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.0700
+    Iterations attempted: 4
+    Reason: Simulation execution failed
+    Final Torque CV: N/A
+    Final Power CV: N/A
+
+
+================================================================================
+END OF LOG
+================================================================================
+
+NOTES:
+------
+This is an example log file showing the format and information captured when
+motors fail quality checking.
+
+KEY INFORMATION CAPTURED:
+- Full path to failed motor file
+- Specific runs that failed (voltage and current density)
+- Initial slip value at start of iterations
+- Final slip value attempted
+- Number of iterations before failure
+- Reason for failure (max iterations, simulation error, etc.)
+- Final CV values for torque and power (if available)
+
+TRANSACTIONAL BEHAVIOR:
+If any run fails for a motor, NO data is saved to the database for that motor.
+This ensures data integrity and prevents partial/inconsistent results.
+
+HOW TO USE THIS INFORMATION:
+1. Identify problematic motors from the log
+2. Review the CV values to understand smoothness issues
+3. Consider adjusting quality check parameters:
+   - Increase max_iterations for more attempts
+   - Increase slip_increment for more aggressive adjustment
+   - Relax smoothness_threshold if requirements are too strict
+4. Investigate motor geometry/parameters for underlying issues
+5. Re-run with adjusted parameters
+
+EXAMPLE REMEDIATION ACTIONS:
+- High CV values (>0.20): Increase max_iterations to 10, slip_increment to 0.03
+- Simulation failures: Check motor file integrity, verify MotorCAD license
+- Consistent failures at high current density: May indicate motor design limits

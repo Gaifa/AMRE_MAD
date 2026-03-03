@@ -1,0 +1,123 @@
+================================================================================
+MOTORCAD QUALITY CHECK SIMULATION LOG - FAILURES DETECTED
+================================================================================
+Date: 2026-03-02 14:14:46
+Total motors with failures: 1
+================================================================================
+
+
+################################################################################
+FAILED MOTOR #1
+################################################################################
+
+Motor Path: C:\Users\grell\Desktop\MCAD_jack\motors\D106\D106 H110 15sp DT ( 3x0.65 + 2x0.63 ).mot
+Number of failed runs: 10
+
+--------------------------------------------------------------------------------
+FAILED RUNS DETAILS:
+--------------------------------------------------------------------------------
+
+  Run #1:
+    Voltage: 96 V
+    Current Density: 5 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.2000
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.1633
+    Final Power CV: 0.0575
+
+  Run #2:
+    Voltage: 96 V
+    Current Density: 5.5 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.2000
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.1920
+    Final Power CV: 0.0585
+
+  Run #3:
+    Voltage: 96 V
+    Current Density: 6 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.2000
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.2246
+    Final Power CV: 0.0587
+
+  Run #4:
+    Voltage: 96 V
+    Current Density: 6.5 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.2000
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.2694
+    Final Power CV: 0.0697
+
+  Run #5:
+    Voltage: 96 V
+    Current Density: 7 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.1917
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.2822
+    Final Power CV: 0.0520
+
+  Run #6:
+    Voltage: 96 V
+    Current Density: 7.5 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.1976
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.3143
+    Final Power CV: 0.0916
+
+  Run #7:
+    Voltage: 96 V
+    Current Density: 8 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.1212
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.3138
+    Final Power CV: 0.0506
+
+  Run #8:
+    Voltage: 96 V
+    Current Density: 8.5 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.2000
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.3142
+    Final Power CV: 0.0481
+
+  Run #9:
+    Voltage: 96 V
+    Current Density: 9 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.1990
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.3162
+    Final Power CV: 0.0530
+
+  Run #10:
+    Voltage: 96 V
+    Current Density: 13 A/mm²
+    Initial Slip (start): 0.0100
+    Initial Slip (final): 0.0900
+    Iterations attempted: 5
+    Reason: Max iterations (5) reached without smooth results
+    Final Torque CV: 0.6155
+    Final Power CV: 0.7333
+
+
+================================================================================
+END OF LOG
+================================================================================
