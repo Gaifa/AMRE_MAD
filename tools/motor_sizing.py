@@ -643,7 +643,7 @@ def main():
         peso_vuoto=3875,  # kg
         peso_carico=6250,  # kg
         diametro_ruota=0.7439,  # m (743.9mm)
-        rapporto_riduzione=12.578,  # giri_motore/giri_ruota
+        rapporto_riduzione=15.04,  # giri_motore/giri_ruota
         coeff_rotolamento=0.018,  # tipico per pneumatici su asfalto
         densita_aria=1.225,  # kg/m³
         coeff_drag=0,  # Cd
@@ -651,7 +651,7 @@ def main():
         rendimento_meccanico=0.90,  # 90%
         rendimento_motore=0.85,  # 85%
         num_ruote_motrici=2,  # 2 ruote posteriori motrici
-        num_motori=1   # 2 motori (es: 2 motori in-wheel, uno per ruota)
+        num_motori=1   # 1 motore
     )
     
     # Definizione requisiti di prestazione
@@ -680,7 +680,9 @@ def main():
     sizing.esegui_analisi_completa()
     
     # Salva report in file txt
-    sizing.salva_report_txt("motor_sizing_report.txt")
+    report_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
+    os.makedirs(report_dir, exist_ok=True)
+    sizing.salva_report_txt(os.path.join(report_dir, "motor_sizing_report.txt"))
     
     print(f"\n{'='*80}")
     print("ANALISI COMPLETATA")

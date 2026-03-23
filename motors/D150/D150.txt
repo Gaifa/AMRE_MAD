@@ -1,0 +1,15 @@
+motors\D150\D150 H90 4sp DT ( 12x0.9 ).mot
+motors\D150\D150 H90 7sp DT ( 7x0.85 ).mot
+motors\D150\D150 H90 12sp DT ( 4x0.9 ).mot
+motors\D150\D150 H90 14sp DT ( 3x0.85+1x0.75 ).mot
+motors\D150\D150 H90 21sp DT ( 1x0.95 + 1x0.9 ).mot
+motors\D150\D150 H120 3sp DT ( 16x0.9 ).mot
+motors\D150\D150 H120 5sp DT ( 10x0.85 ).mot
+motors\D150\D150 H120 6sp DT ( 8x0.9 ).mot
+motors\D150\D150 H120 7sp DT ( 8x0.85 ).mot
+motors\D150\D150 H120 8sp DT ( 7x0.8 ).mot
+motors\D150\D150 H120 11sp DT ( 6x0.75 ).mot
+motors\D150\D150 H120 12sp DT ( 4x0.9 ).mot
+motors\D150\D150 H120 17sp DT ( 1x0.8 + 3x0.75).mot
+motors\D150\D150 H120 19sp DT ( 2x0.8 + 1x0.85).mot
+motors\D150\D150 H150 3sp DT ( 16x0.9 ).mot

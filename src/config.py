@@ -60,7 +60,7 @@ DEFAULT_MODEL_DICT = {
     'Maximum speed': 5000,              # Maximum rotational speed [rpm]
     'Minimum speed': 50,                # Minimum rotational speed [rpm]
     'Maximum current density': 15,      # Maximum current density [A/mm²]
-    'Battery voltage': [24,48,80,96],#[24, 48, 80, 96, 120, 144],  # DC bus voltages to test [V]
+    'Battery voltage': [48, 96,108],#[24, 48, 80, 96],  # DC bus voltages to test [V]
     'Current density': [3.5,4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 13]  # Current densities to test [A/mm²]
 }
 
@@ -84,7 +84,7 @@ QUALITY_CHECK_INITIAL_SLIP_START = 0.01
 QUALITY_CHECK_SLIP_INCREMENT = 0.02
 
 # Maximum value for initial slip (safety limit)
-QUALITY_CHECK_MAX_SLIP = 0.20
+QUALITY_CHECK_MAX_SLIP = 0.3
 
 # Percentile threshold used to identify "high torque & high speed" operating
 # points when extracting the slip-based seed for the second iteration.

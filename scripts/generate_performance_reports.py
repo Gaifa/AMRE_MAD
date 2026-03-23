@@ -206,7 +206,7 @@ def get_motor_info_from_json(motor_json):
     return info
 
 
-def generate_performance_plot(run_data_list, duty_labels, output_path):
+def generate_performance_plot(run_data_list, duty_labels, output_path, max_speed=None):
     """
     Generate combined torque and power plot for multiple duty cycles.
     
@@ -214,6 +214,7 @@ def generate_performance_plot(run_data_list, duty_labels, output_path):
         run_data_list: List of run data dictionaries (one per duty)
         duty_labels: List of duty labels (e.g., ['S2-5min', 'S2-20min', 'S2-60min'])
         output_path: Path to save the plot image
+        max_speed: Optional upper speed limit [rpm] for the x-axis
     """
     fig, ax1 = plt.subplots(figsize=(11, 6))
     ax2 = ax1.twinx()
@@ -235,6 +236,16 @@ def generate_performance_plot(run_data_list, duty_labels, output_path):
         if len(speed) == 0:
             continue
 
+        # Clip to max_speed if requested
+        if max_speed is not None:
+            mask = speed <= max_speed
+            speed = speed[mask]
+            torque = torque[mask] if len(torque) == len(mask) else torque
+            power  = power[mask]  if len(power)  == len(mask) else power
+
+        if len(speed) == 0:
+            continue
+
         # Torque — solid line on left axis
         ax1.plot(speed, torque, color=color, linewidth=2, linestyle='-')
 
@@ -245,6 +256,10 @@ def generate_performance_plot(run_data_list, duty_labels, output_path):
         legend_handles.append(
             plt.Line2D([0], [0], color=color, linewidth=2, label=duty_label)
         )
+
+    # Enforce x-axis upper limit
+    if max_speed is not None:
+        ax1.set_xlim(right=max_speed)
 
     # Left axis — torque
     ax1.set_xlabel('Speed [rpm]', fontsize=12, fontweight='bold')
@@ -313,14 +328,23 @@ def get_run_performance_data(con, motor_id, voltage, current_density):
     
     # Find max power point
     max_power_idx = np.argmax(power)
-    
+
+    # Find base-speed point: lowest speed at which voltage_phase is at (or near)
+    # its maximum — this is the transition from constant-torque to field-weakening.
+    if len(voltage_phase) > 0:
+        _vph_threshold = 0.99 * np.max(voltage_phase)
+        _base_candidates = np.where(voltage_phase >= _vph_threshold)[0]
+        max_torque_idx = int(_base_candidates[0]) if len(_base_candidates) > 0 else np.argmax(torque)
+    else:
+        max_torque_idx = np.argmax(torque)
+
     return {
-        'torque': torque[max_power_idx] if len(torque) > max_power_idx else 0,
-        'power': power[max_power_idx] if len(power) > max_power_idx else 0,  # kW
-        'speed': speed[max_power_idx] if len(speed) > max_power_idx else 0,
-        'efficiency': efficiency[max_power_idx] if len(efficiency) > max_power_idx else 0,
-        'current': current[max_power_idx] if len(current) > max_power_idx else 0,
-        'voltage': voltage_phase[max_power_idx] if len(voltage_phase) > max_power_idx else 0,
+        'torque': torque[max_torque_idx] if len(torque) > max_torque_idx else 0,
+        'power': power[max_torque_idx] if len(power) > max_torque_idx else 0,  # kW
+        'speed': speed[max_torque_idx] if len(speed) > max_torque_idx else 0,
+        'efficiency': efficiency[max_torque_idx] if len(efficiency) > max_torque_idx else 0,
+        'current': current[max_torque_idx] if len(current) > max_torque_idx else 0,
+        'voltage': voltage_phase[max_torque_idx] if len(voltage_phase) > max_torque_idx else 0,
         'current_density': current_density
     }
 
@@ -549,7 +573,7 @@ def generate_pdf_report(motor_id, motor_info, voltage, motor_type, type_config,
     print(f"  PDF generated: {output_path}")
 
 
-def generate_reports_for_motor(motor_id, motor_data, types_config, db_path, output_dir):
+def generate_reports_for_motor(motor_id, motor_data, types_config, db_path, output_dir, max_speed=None):
     """
     Generate all PDF reports for a single motor (all types and voltages).
     
@@ -559,6 +583,7 @@ def generate_reports_for_motor(motor_id, motor_data, types_config, db_path, outp
         types_config: Motor types configuration
         db_path: Path to database
         output_dir: Output directory for PDFs
+        max_speed: Optional upper speed limit [rpm] for plots
     """
     motor_json = motor_data['motor_json']
     motor_info = get_motor_info_from_json(motor_json)
@@ -644,7 +669,7 @@ def generate_reports_for_motor(motor_id, motor_data, types_config, db_path, outp
             # Generate plot
             temp_plot_path = os.path.join(output_dir, f"temp_plot_{motor_id}_{motor_type}_{int(voltage)}.png")
             try:
-                generate_performance_plot(run_data_list, duty_labels, temp_plot_path)
+                generate_performance_plot(run_data_list, duty_labels, temp_plot_path, max_speed=max_speed)
             except Exception as e:
                 print(f"    Warning: Failed to generate plot: {e}")
                 temp_plot_path = ""
@@ -683,7 +708,7 @@ def generate_reports_for_motor(motor_id, motor_data, types_config, db_path, outp
     con.close()
 
 
-def generate_all_reports(db_path=None, config_path=CONFIG_FILE, output_dir=None):
+def generate_all_reports(db_path=None, config_path=CONFIG_FILE, output_dir=None, max_speed=None):
     """
     Generate PDF reports for all motors in the database.
     
@@ -691,6 +716,7 @@ def generate_all_reports(db_path=None, config_path=CONFIG_FILE, output_dir=None)
         db_path: Path to database (default: from config)
         config_path: Path to motor types config JSON
         output_dir: Output directory for PDFs
+        max_speed: Optional upper speed limit [rpm] for plots
     """
     if db_path is None:
         db_path = config.DB_PATH
@@ -737,7 +763,8 @@ def generate_all_reports(db_path=None, config_path=CONFIG_FILE, output_dir=None)
                 motor_data=motor,
                 types_config=types_config,
                 db_path=db_path,
-                output_dir=output_dir
+                output_dir=output_dir,
+                max_speed=max_speed
             )
         except Exception as e:
             print(f"\nError processing Motor ID {motor['id']}: {e}")
@@ -758,6 +785,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=str, help='Path to motor types config JSON')
     parser.add_argument('--output', type=str, help='Output directory for PDFs')
     parser.add_argument('--motor-id', type=int, help='Generate report only for specific motor ID')
+    parser.add_argument('--max-speed', type=float, default=None, help='Maximum speed [rpm] displayed in plots')
     
     args = parser.parse_args()
     
@@ -778,7 +806,8 @@ if __name__ == "__main__":
                 break
         
         if motor_data:
-            generate_reports_for_motor(args.motor_id, motor_data, types_config, db_path, output_dir)
+            generate_reports_for_motor(args.motor_id, motor_data, types_config, db_path, output_dir,
+                                       max_speed=args.max_speed)
         else:
             print(f"Motor ID {args.motor_id} not found in database")
     else:
@@ -786,5 +815,6 @@ if __name__ == "__main__":
         generate_all_reports(
             db_path=args.db or None,
             config_path=args.config or CONFIG_FILE,
-            output_dir=args.output or None
+            output_dir=args.output or None,
+            max_speed=args.max_speed
         )

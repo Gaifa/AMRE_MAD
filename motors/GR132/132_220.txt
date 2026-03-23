@@ -1,0 +1,5 @@
+motors\GR132\GR132 H220 5sp QT ( 6x1.18+3x1.06+4x1).mot
+motors\GR132\GR132 H220 6sp QT ( 9x0.95 + 8x0.8 ).mot
+motors\GR132\GR132 H220 7sp QT ( 8x1+3x1.06 ).mot
+motors\GR132\GR132 H220 8sp QT ( 9x1+1x0.95 ).mot
+motors\GR132\GR132 H220 10sp QT ( 2x1.06+4x1.18 ).mot

@@ -12,6 +12,9 @@ scipy>=1.7.0
 # Data visualization (for plotting results and PDF reports)
 matplotlib>=3.4.0
 
+# Excel export (for print_motor_json.py)
+openpyxl>=3.0.0
+
 # PDF generation (for performance reports)
 reportlab>=3.6.0
 

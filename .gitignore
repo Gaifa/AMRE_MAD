@@ -46,6 +46,8 @@ MessageLogs/
 Lab/
 # Generated output (auto-created at runtime)
 generated_pdfs/
+motor_parameters/
+logs/
 
 # Logs
 *.log

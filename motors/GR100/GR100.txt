@@ -1,0 +1,18 @@
+motors\GR100\GR100 H130 3sp DT ( 8x0.95 + 9x0.9 ).mot
+motors\GR100\GR100 H130 4sp DT ( 9x1+2x0.9 ) (2).mot
+motors\GR100\GR100 H130 4sp DT ( 9x1+2x0.9 ).mot
+motors\GR100\GR100 H130 5sp DT ( 8x0.95+2x0.9 ).mot
+motors\GR100\GR100 H130 6sp DT (7x1.06).mot
+motors\GR100\GR100 H130 7sp DT ( 2x1+3x1.06+1x1.18 ).mot
+motors\GR100\GR100 H130 8sp DT ( 7x0.9 ).mot
+motors\GR100\GR100 H130 9sp DT (4x0.95+2x0.9).mot
+motors\GR100\GR100 H130 10sp DT (5x0.95).mot
+motors\GR100\GR100 H180 4sp DT ( 4x0.95+2x0.9 ).mot
+motors\GR100\GR100 H180 8sp DT ( 7x0.9 ).mot
+motors\GR100\GR100 H180 9sp DT ( 4x0.95+2x0.9 ).mot
+motors\GR100\GR100 H220 6sp DT ( 7x1.18 ).mot
+motors\GR100\GR100 H220 7sp DT ( 2x1.00 + 3x1.06 + 1x1.18 ).mot
+motors\GR100\GR100 H050 5sp DT ( 8x0.95 + 2x0.9 ).mot
+motors\GR100\GR100 H50 9sp DT (4x0.95+2x0.9).mot
+motors\GR100\GR100 H095 5sp DT ( 8x0.95 + 2x0.9 ).mot
+motors\GR100\GR100 H95 9sp DT (4x0.95+2x0.9).mot

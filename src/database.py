@@ -382,3 +382,52 @@ def delete_motor_runs(motor_id: int, db_path: str = config.DB_PATH) -> int:
     con.commit()
     con.close()
     return deleted
+
+
+def delete_runs_by_current_density(current_density: float, db_path: str = config.DB_PATH) -> int:
+    """
+    Delete all runs across all motors at a specific current density.
+
+    Useful to purge a current density point that needs to be re-simulated
+    for every motor in the database.
+
+    Args:
+        current_density: Current density [A/mm²] to delete
+        db_path: Path to SQLite database file
+
+    Returns:
+        Number of runs deleted
+    """
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute("DELETE FROM runs WHERE current_density=?", (float(current_density),))
+    deleted = cur.rowcount
+    con.commit()
+    con.close()
+    return deleted
+
+
+def delete_run(motor_id: int, voltage: float, current_density: float,
+               db_path: str = config.DB_PATH) -> int:
+    """
+    Delete a single specific run identified by motor, voltage and current density.
+
+    Args:
+        motor_id: Motor ID (foreign key to motors table)
+        voltage: Battery voltage [V]
+        current_density: Current density [A/mm²]
+        db_path: Path to SQLite database file
+
+    Returns:
+        1 if the run was deleted, 0 if it did not exist
+    """
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute(
+        "DELETE FROM runs WHERE motor_id=? AND voltage=? AND current_density=?",
+        (int(motor_id), float(voltage), float(current_density))
+    )
+    deleted = cur.rowcount
+    con.commit()
+    con.close()
+    return deleted

@@ -479,7 +479,9 @@ Examples:
     
     # Create logger with timestamp
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    log_file_path = f"quality_check_log_{timestamp}.txt"
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    log_file_path = os.path.join(log_dir, f"quality_check_log_{timestamp}.txt")
     logger = QualityCheckLogger(log_file_path)
     print(f"Log file will be saved as: {log_file_path}\n")
     

@@ -2,7 +2,7 @@
     "motor_types": {
         "FL": {
             "description": "FrameLess Motors",
-            "ip_class": "IP00",
+            "ip_class": "IP20",
             "duties": {
                 "S1": {
                     "current_density": 3.5,

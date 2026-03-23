@@ -1,0 +1,134 @@
+motors\D300\D300 H270 6sp QT ( 6x1+5x1.06+4x1.18 ).mot
+motors\D300\D300 H270 7sp QT ( 12x1+2x1.06 ).mot
+motors\D300\D300 H270 8sp QT ( 9x1.18 ).mot
+motors\D300\D300 H270 9sp QT ( 14x0.9 ).mot
+motors\D300\D300 H205 5sp QT ( 9x1.4).mot
+motors\D300\D300 H205 6sp QT ( 7x0.95 + 10x0.9 ).mot
+motors\D300\D300 H205 7sp QT ( 12x1 +2x1.06 ).mot
+motors\D300\D300 H205 8sp QT ( 7x0.95+10x0.9 ).mot
+motors\D300\D300 H270 5sp QT ( 9x1.4).mot
+
+motors\D270\D270 H320 5sp DT ( 22x0.95 ).mot
+motors\D270\D270 H320 6sp TT ( 4x1.06+2x1.18+2x1 ) 6p.mot
+motors\D270\D270 H200 3sp DT ( 24x1.12 ).mot
+motors\D270\D270 H200 4sp DT ( 0.9x28 ).mot
+motors\D270\D270 H250 3sp DT ( 7x1.06+7x1.18 ).mot
+motors\D270\D270 H250 4sp DT ( 10x0.95+5x0.9 ).mot
+motors\D270\D270 H250 5sp DT ( 14x1.18+2x1 ).mot
+
+# H100
+motors\D240\D240 H100 4sp DT ( 19x1 ).mot
+motors\D240\D240 H100 8sp DT (13x0.9).mot
+#H120
+motors\D240\D240 H120 4sp DT ( 19x1 ).mot
+motors\D240\D240 H120 6sp DT ( 2x1+10x1.06+1x1.18 ).mot
+motors\D240\D240 H120 7sp DT ( 6x1.18+2x1.06+2x1 ).mot
+# H160
+motors\D240\D240 H160 3sp DT ( 20x1+7x1.06 ).mot
+motors\D240\D240 H160 4sp DT ( 19x1 ).mot
+motors\D240\D240 H160 5sp DT ( 14x1 + 3x0.85 ).mot
+motors\D240\D240 H160 6sp DT ( 5x1.18+6x1.06+1x1 ).mot
+motors\D240\D240 H160 7sp DT ( 6x1.18+2x1.06+2x1 ).mot
+motors\D240\D240 H160 8sp DT ( ).mot
+motors\D240\D240 H160 9sp DT ( 10x1 ).mot
+# H200
+motors\D240\D240 H200 3sp DT ( 20x1+7x1.06 ).mot
+motors\D240\D240 H200 4sp DT ( 19x1 ).mot
+motors\D240\D240 H200 5sp DT ( 6x1.18 + 7x1.06).mot
+motors\D240\D240 H200 5sp DT ( 14x1 + 3x0.85 ).mot
+motors\D240\D240 H200 6sp DT ( 5x1.18+6x1.06+1x1).mot
+motors\D240\D240 H200 7sp DT ( 6x1.18+2x1.06+2x1 ).mot
+
+motors\D180\D180 H95 6sp DT (7x1.06).mot
+motors\D180\D180 H50 6sp DT (7x1.06).mot
+
+motors\D170\D170 H100 9sp DT ( 9x0.75 ).mot
+motors\D170\D170 H100 10sp DT ( 8x0.75 ).mot
+motors\D170\D170 H100 14sp DT ( 6x0.75 ).mot
+motors\D170\D170 H50 14sp DT ( 6x0.75 ).mot
+
+motors\D106\D106 H65 25sp DT ( 2x0.63 + 2x0.5 ).mot
+motors\D106\D106 H65 30sp DT ( 2x0.63 + 1x0.5 ).mot
+motors\D106\D106 H65 40sp DT ( 1x0.9 ).mot
+motors\D106\D106 H65 45sp DS ( 1x0.71 + 1x0.5 ).mot
+motors\D106\D106 H65 45sp DT ( 1x0.71 + 1x0.5 ).mot
+# H110
+motors\D106\D106 H110 15sp DT ( 3x0.65 + 2x0.63 ).mot
+motors\D106\D106 H110 25sp DT ( 2x0.5+2x0.63 ).mot
+motors\D106\D106 H110 45sp DT ( 1x0.6+1x0.63 ).mot
+
+motors\D135\D135 H120 19sp DT ( 2x0.71 + 2x0.63 ).mot
+motors\D135\D135 H120 20sp ().mot
+motors\D135\D135 H140 4sp DT ( 8x0.8 + 6x0.75 ).mot
+
+motors\D135\D135 H100 4sp DT ( 8x0.8 + 6x0.75 ).mot
+motors\D135\D135 H100 5sp DT ( ).mot
+motors\D135\D135 H100 7sp DT ( 5x0.8 + 3x0.75 ).mot
+motors\D135\D135 H100 9sp DT ( 5x0.8 + 1x0.75 ).mot
+motors\D135\D135 H100 12sp DT ( 2x0.9 + 2x0.8 ).mot
+motors\D135\D135 H100 12sp DT ( 5x0.75 ).mot
+motors\D135\D135 H100 14sp DT ( 2x0.8 + 2x0.75 ).mot
+motors\D135\D135 H100 23sp DT ( 3x0.71 ).mot
+
+motors\D135\D135 H120 3sp DT ( 11x0.8 + 6x0.75 ).mot
+motors\D135\D135 H120 4sp DT ( 8x0.8+6x0.75 ).mot
+motors\D135\D135 H120 6sp DT ( 8x0.8 +1x0.75 ).mot
+motors\D135\D135 H120 7sp DT ( 5x0.8 + 3x0.75 ).mot
+motors\D135\D135 H120 10sp DT (  ).mot
+motors\D135\D135 H120 10sp DT ( 11x0.56 ).mot
+motors\D135\D135 H120 13sp DT ( ).mot
+
+motors\D150\D150 H90 4sp DT ( 12x0.9 ).mot
+motors\D150\D150 H90 7sp DT ( 7x0.85 ).mot
+motors\D150\D150 H90 12sp DT ( 4x0.9 ).mot
+motors\D150\D150 H90 14sp DT ( 3x0.85+1x0.75 ).mot
+motors\D150\D150 H90 21sp DT ( 1x0.95 + 1x0.9 ).mot
+motors\D150\D150 H120 3sp DT ( 16x0.9 ).mot
+motors\D150\D150 H120 5sp DT ( 10x0.85 ).mot
+motors\D150\D150 H120 6sp DT ( 8x0.9 ).mot
+motors\D150\D150 H120 7sp DT ( 8x0.85 ).mot
+motors\D150\D150 H120 8sp DT ( 7x0.8 ).mot
+motors\D150\D150 H120 11sp DT ( 6x0.75 ).mot
+motors\D150\D150 H120 12sp DT ( 4x0.9 ).mot
+motors\D150\D150 H120 17sp DT ( 1x0.8 + 3x0.75).mot
+motors\D150\D150 H120 19sp DT ( 2x0.8 + 1x0.85).mot
+motors\D150\D150 H150 3sp DT ( 16x0.9 ).mot
+
+motors\D200\D200 H100 6sp DT  ( 7x0.95 + 3x0.9 ).mot
+motors\D200\D200 H100 7sp DT (5x0.85 + 6x0.8).mot
+motors\D200\D200 H100 8sp DT ( 6x1.06 ).mot
+motors\D200\D200 H100 11sp DT ( 6x0.9 ).mot
+motors\D200\D200 H100 12sp DT ( 5x0.95 ).mot
+motors\D200\D200 H140 3sp DT ( 16x1 +1x1.06 ).mot
+motors\D200\D200 H140 5sp DT ( 10x0.95 + 2x0.9 ).mot
+motors\D200\D200 H140 6sp DT ( 7x0.95 + 3x0.9 ).mot
+motors\D200\D200 H140 8sp DT ( 6x1.06 ).mot
+motors\D200\D200 H140 10sp DT ( 6x0.95 ).mot
+motors\D200\D200 H160 3sp DT ( 16 x 1,00 + 1 x 1,06 ).mot
+motors\D200\D200 H160 4sp DT ( 6x1.18 + 2x1.06 + 3x1.00 ).mot
+motors\D200\D200 H160 5sp DT ( 10x0.95 + 2x0.9 ).mot
+motors\D200\D200 H160 6sp DT ( 7x0.95 + 3x0.9 ).mot
+motors\D200\D200 H160 7sp DT ( 5x0.85 + 6x0.8 ).mot
+motors\D200\D200 H160 7sp DT ( 6x1.18 ).mot
+motors\D200\D200 H160 8sp DT ( 2x0.95 + 6x0.9 ).mot
+motors\D200\D200 H160 9sp DT ( 3x0.95 + 4x0.9 ).mot
+motors\D200\D200 H180 6p 8sp DT (6x1.06).mot
+motors\D200\D200 H50 7sp DT ( 5x0.85 + 6x0.8 ).mot
+motors\D200\D200 H100 4sp DT (13x1).mot
+motors\D200\D200 H100 5sp DT  ( 5x1.18 + 4x1.06 ).mot
+
+motors\GR132\GR132 H220 5sp QT ( 6x1.18+3x1.06+4x1).mot
+motors\GR132\GR132 H220 6sp QT ( 9x0.95 + 8x0.8 ).mot
+motors\GR132\GR132 H220 7sp QT ( 8x1+3x1.06 ).mot
+motors\GR132\GR132 H220 8sp QT ( 9x1+1x0.95 ).mot
+motors\GR132\GR132 H220 10sp QT ( 2x1.06+4x1.18 ).mot
+
+motors\GR132\GR 132 H145 6sp QT ( 9x0.95 + 8x0.8 ).mot
+motors\GR132\GR 132 H145 7sp QT ( 8x1 +3x1.06 ).mot
+motors\GR132\GR 132 H145 9sp QT ( 9x0.95 ).mot
+motors\GR132\GR132 H145 11sp QT ( 5x1 + 2x1.06 ).mot
+motors\GR132\GR132 H145 11sp QT (5x1+2x1.06).mot
+motors\GR132\GR132 H185 5sp QT ( 6x1.18 + 3x1.06 + 4x1).mot
+motors\GR132\GR132 H185 6sp QT ( 9x0.95 + 8x0.8).mot
+motors\GR132\GR132 H185 9sp QT ( 9x0.95 ).mot
+motors\GR132\GR132 H185 12sp QT ( 4x1.18+1x1.06 ).mot
